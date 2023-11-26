@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TO DO LIST!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      min-width: 400px;
+      background-color: rgb(241, 209, 229);
+      color: black;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+    }
+
+    ul li {
+      cursor: grab;
+      position: relative;
+      padding: 12px 8px 12px 40px;
+      list-style-type: none;
+      background: #eee;
+      font-size: 18px;
+      transition: 0.2s;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+    }
+
+    ul li:nth-child(odd) {
+      background: #f9f9f9;
+    }
+
+    ul li:hover {
+      background: #f5f2f2;
+    }
+
+    ul li.checked {
+      background: #888;
+      color: #fff;
+      text-decoration: line-through;
+    }
+
+    ul li.checked::before {
+      content: '';
+      position: absolute;
+      border-color: #fff;
+      border-style: solid;
+      border-width: 0 2px 2px 0;
+      top: 10px;
+      left: 16px;
+      transform: rotate(45deg);
+      height: 15px;
+      width: 7px;
+    }
+
+    ul li.completed {
+      background: #888;
+      color: red; /* Updated color to red */
+      text-decoration: line-through;
+    }
+    
+    ul li.completed.notReached {
+      text-decoration: none;
+    }
+
+    ul li.dragging {
+      background: #bbb;
+    }
+
+    .header {
+      background-color: #36b1f4;
+      padding: 30px 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .header:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    input {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      width: 50%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .addBtn {
+      padding: 10px;
+      width: 20%;
+      background: #d9d9d9;
+      color: #555;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      border-radius: 0;
+    }
+
+    .addBtn:hover {
+      background-color: #bbb;
+    }
+
+    .dueDate.notReached {
+      color: blue;
+    }
+
+    .dueDate.reached {
+      color: red;
+      font-weight: bold;
+    }
+
+    .yayMessage {
+      font-size: 60px;
+      color: #4caf50;
+      z-index: 999;
+    }
+
+    .daysRemaining {
+      font-size: 14px;
+      color: green;
+      margin-bottom: 5px;
+    }
+
+    .categories {
+      display: flex;
+      justify-content: space-around;
+      padding: 15px 0;
+      background-color: #36b1f4;
+    }
+
+    .category {
+      cursor: pointer;
+      padding: 20px;
+      background: rgb(232, 191, 224);
+      color: rgb(0, 0, 0);
+      border: black;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .dragBtn {
+      width: 50px;
+      height: 50px;
+      background-color: #2196F3;
+      color: white;
+      text-align: center;
+      line-height: 50px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .dragBtn:hover {
+      background-color: #0b7dda;
+    }
+
+    .editButton {
+      width: 50px;
+      height: 50px;
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      line-height: 50px;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+
+    .editButton:hover {
+      background-color: #45a049;
+    }
+
+    .trashBin {
+      width: 80px;
+      height: 80px;
+      background-color: #f44336;
+      color: white;
+      text-align: center;
+      line-height: 80px;
+      margin: 10px auto;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+
+    /* Added styles for Complete Task button */
+    .completeContainer {
+      display: flex;
+      justify-content: space-between;
+      margin: 15px auto;
+    }
+
+    .completeBtn {
+      width: 90px;
+      height: 90px;
+      background-color:#36b1f4;
+      color: white;
+      text-align: center;
+      line-height: 90px;
+      margin: 15px auto;
+      cursor: pointer;
+      border-radius: 60%;
+    }
+
+    .completeBtn:hover {
+      background-color: #bbb;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Page 1: Get user's name -->
+  <div id="page1" class="header">
+    <h2 style="margin:5px;font-size:60px"><b><u>Welcome to Your To-Do List</u></b></h2>
+    <br>
+    <input type="text" id="userNameInput" placeholder="Your Name">
+    <span onclick="startToDoList()" class="addBtn">Start</span>
+  </div>
+
+  <!-- Page 2: To-Do List -->
+  <div id="page2" style="display: none;">
+    <h2 style="margin:5px;font-size:30px;color:black"><b>Hi <span id="userName"></span></b></h2>
+    <div class="header">
+      <u><h2 style="margin:5px;font-size:40px;color:rgb(230, 222, 222)">Here's Your To-Do List</u></h2>
+    </div>
+
+    <div class="categories">
+      <button class="category" onclick="filterTasks('all')">All</button>
+      <button class="category" onclick="filterTasks('work')">Work</button>
+      <button class="category" onclick="filterTasks('personal')">Personal</button>
+      <button class="category" onclick="filterTasks('shopping')">Shopping</button>
+    </div>
+
+    <ul id="myUL" ondragover="allowDrop(event)" ondrop="drop(event)">
+      <!-- Add more initial tasks as needed -->
+    </ul>
+
+    <div class="taskHeading" id="taskHeading">Tasks:</div>
+
+    <input type="text" id="myInput" placeholder="TASK...">
+    <input type="date" id="dueDate" class="dueDate">
+    <span onclick="newElement()" class="addBtn">Add</span>
+
+    <br>
+    <!-- New buttons in a container -->
+    <div class="completeContainer">
+      <div class="completeBtn" onclick="completeTask()">COMPLETE</div>
+      <div class="trashBin" ondragover="allowDrop(event)" ondrop="removeTask(event)">🗑️</div>
+    </div>
+
+    <div id="completionMessageContainer">
+      <div id="messageContainer"></div>
+    </div>
+  <script>
+    function startToDoList() {
+      const userNameInput = document.getElementById("userNameInput");
+      const userName = userNameInput.value.trim();
+  
+      if (userName === "") {
+        alert("Please enter your name.");
+        return;
+      }
+  
+      document.getElementById("userName").innerText = userName;
+      document.getElementById("page1").style.display = "none";
+      document.getElementById("page2").style.display = "block";
+    }
+  
+    let draggedItem = null;
+  
+    document.querySelector('ul').addEventListener('mousedown', function (e) {
+      const target = e.target.closest('li');
+      if (target) {
+        draggedItem = target;
+        target.classList.add('dragging');
+      }
+    });
+  
+    document.querySelector('ul').addEventListener('touchstart', function (e) {
+      const target = e.target.closest('li');
+      if (target) {
+        draggedItem = target;
+        target.classList.add('dragging');
+      }
+    });
+  
+    document.querySelector('ul').addEventListener('dragover', function (e) {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(this, e.clientY);
+      const draggingElement = document.querySelector('.dragging');
+      if (afterElement == null) {
+        this.appendChild(draggingElement);
+      } else {
+        this.insertBefore(draggingElement, afterElement);
+      }
+    });
+  
+    document.querySelector('.categories').addEventListener('dragover', function (e) {
+      e.preventDefault();
+    });
+  
+    document.querySelector('.categories').addEventListener('drop', function (e) {
+      e.preventDefault();
+      const taskContent = e.dataTransfer.getData("text");
+      const categoryOptions = ['work', 'personal', 'shopping'];
+      let selectedCategory = prompt("Select category:", categoryOptions[0]);
+  
+      if (selectedCategory !== null && selectedCategory !== "") {
+        selectedCategory = selectedCategory.toLowerCase();
+  
+        if (!categoryOptions.includes(selectedCategory)) {
+          alert("Invalid category selected. Defaulting to the first category.");
+          selectedCategory = "CATEGORY";
+        }
+  
+        const li = document.createElement("li");
+        li.draggable = true;
+        li.textContent = taskContent;
+        li.dataset.category = selectedCategory;
+        li.addEventListener('click', function () {
+          document.querySelectorAll('.editButton').forEach(btn => {
+            btn.style.display = 'none';
+          });
+  
+          const editButton = this.querySelector('.editButton');
+          editButton.style.display = 'block';
+        });
+  
+        const editButton = document.createElement("span");
+        editButton.className = "editButton";
+        editButton.textContent = "Edit";
+        editButton.onclick = function () {
+          editTask(this);
+        };
+        li.appendChild(editButton);
+  
+        document.getElementById("myUL").appendChild(li);
+      }
+    });
+  
+    document.querySelector('.trashBin').addEventListener('dragover', function (e) {
+      e.preventDefault();
+    });
+  
+    function drop(e) {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(document.getElementById('myUL'), e.clientY);
+      if (afterElement == null) {
+        document.getElementById('myUL').appendChild(draggedItem);
+      } else {
+        document.getElementById('myUL').insertBefore(draggedItem, afterElement);
+      }
+  
+      // Remove dragging class after dropping
+      draggedItem.classList.remove('dragging');
+      draggedItem = null;
+    }
+  
+    function removeTask(e) {
+      e.preventDefault();
+      if (draggedItem) {
+        draggedItem.remove();
+      }
+    }
+  
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+  
+    function filterTasks(category) {
+      document.querySelectorAll('ul li').forEach(item => {
+        item.style.display = (category === 'all' || item.dataset.category === category) ? 'flex' : 'none';
+      });
+    }
+
+
+
+
+
+    function completeTask() {
+      const selectedTasks = document.querySelectorAll('#myUL li.dragging');
+      
+      if (selectedTasks.length > 0) {
+        selectedTasks.forEach(task => {
+          const dueDate = task.dataset.dueDate;
+          const currentDate = new Date();
+          const dueDateTime = dueDate ? new Date(dueDate + 'T00:00:00') : null;
+          const daysRemaining = dueDateTime ? Math.ceil((dueDateTime - currentDate) / (1000 * 60 * 60 * 24)) : null;
+
+          // Strike through the task name
+          task.classList.remove('dragging', 'notReached', 'reached');
+          task.classList.add('completed');
+
+          // Update the completion message after completing the task
+          updateCompletionMessage(task, daysRemaining);
+        });
+      } else {
+        showMessage('No tasks selected.', 'yellow');
+      }
+    }
+ 
+
+    function newElement() {
+      const inputValue = document.getElementById("myInput").value;
+      const dueDateValue = document.getElementById("dueDate").value;
+      const categoryOptions = ['work', 'personal', 'shopping'];
+      let selectedCategory = prompt("Select category:", "CATEGORY");
+  
+      if (inputValue === '' || selectedCategory === null || selectedCategory === "") {
+        alert("You must provide task and category!");
+        return;
+      }
+  
+      selectedCategory = selectedCategory.toLowerCase();
+  
+      if (!categoryOptions.includes(selectedCategory)) {
+        alert("Invalid category selected. Defaulting to the first category.");
+        selectedCategory = "CATEGORY";
+      }
+  
+      const li = document.createElement("li");
+      li.draggable = true;
+      li.dataset.category = selectedCategory;
+      li.dataset.dueDate = dueDateValue;
+  
+      const taskText = document.createElement("span");
+  
+      if (dueDateValue === '') {
+        // If due date is not given
+        taskText.textContent = `${inputValue}`;
+        taskText.style.color = 'blue';
+      } else {
+        const currentDate = new Date();
+        const dueDateTime = new Date(dueDateValue + 'T00:00:00');
+        const daysRemaining = Math.ceil((dueDateTime - currentDate) / (1000 * 60 * 60 * 24));
+  
+        if (daysRemaining >= 0) {
+          taskText.textContent = `${inputValue} Due: ${dueDateValue} (${daysRemaining} days remaining)`;
+          taskText.classList.add('dueDate', 'notReached');
+        } else {
+          taskText.textContent = `${inputValue} Due: ${dueDateValue} (Due date reached)`;
+          taskText.classList.add('dueDate', 'reached');
+        }
+      }
+  
+      const editButton = document.createElement("span");
+      editButton.className = "editButton";
+      editButton.textContent = "Edit";
+      editButton.onclick = function () {
+        editTask(this);
+      };
+  
+      li.appendChild(taskText);
+      li.appendChild(editButton);
+  
+      taskText.addEventListener('click', function () {
+        const allEditButtons = document.querySelectorAll('.editButton');
+        allEditButtons.forEach(btn => {
+          btn.style.display = 'none';
+        })
+        editButton.style.display = 'block';
+      });
+  
+      document.getElementById("myUL").appendChild(li);
+  
+      document.getElementById("myInput").value = "";
+      document.getElementById("dueDate").value = "";
+    }
+    function CompletionMessage(task,daysRemaining) {
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = "";
+
+      if (daysRemaining !== null) {
+        // Display message based on days remaining
+        if (daysRemaining === 0) {
+          showMessage('Task completed on time. 🎉', 'lightgreen');
+        } else {
+            if (daysRemaining > 0) {
+              showMessage(`Yay! Task marked as complete. ${daysRemaining} days remaining. 🎉`, 'lightgreen');
+            }
+            else {
+              showMessage(`Yay! Task Completed...But  DUE DATE has reached😞`, 'red');
+            }
+          }
+      } 
+      else {
+        // Display message if due date is not given
+        showMessage('Yay! Task completed. 🎉', 'lightgreen');
+      }
+    }
+    function showMessage(message, color) {
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = message;
+      messageContainer.style.backgroundColor = color;
+      messageContainer.style.display = 'block';
+      
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+      }, 3000);
+    }
+    function completeTask() {
+      const selectedTasks = document.querySelectorAll('#myUL li.dragging');
+      
+      if (selectedTasks.length > 0) {
+        selectedTasks.forEach(task => {
+          const dueDate = task.dataset.dueDate;
+          const currentDate = new Date();
+          const dueDateTime = dueDate ? new Date(dueDate + 'T00:00:00') : null;
+          const daysRemaining = dueDateTime ? Math.ceil((dueDateTime - currentDate) / (1000 * 60 * 60 * 24)) : null;
+
+          // Strike through the task name
+          task.classList.remove('dragging', 'notReached', 'reached');
+          task.classList.add('completed');
+
+          // Update the completion message after completing the task
+          CompletionMessage(task, daysRemaining);
+        });
+      } else {
+        showMessage('No tasks selected.', 'yellow');
+      }
+    }
+ 
+  
+      
+
+
+    function editTask(editButton) {
+      const li = editButton.parentElement;
+
+      // Check if the task is completed
+      if (li.classList.contains('completed')) {
+        showMessage('Completed tasks cannot be edited.', 'yellow');
+        return;
+      }
+
+      const taskText = li.querySelector('span');
+      const taskDetails = taskText.textContent.split(' Due: ');
+      const currentTask = taskDetails[0];
+      const currentDueDate = taskDetails[1];
+
+      const updatedTask = prompt("Enter updated task:", currentTask);
+
+      if (updatedTask !== null && updatedTask !== "") {
+        const dueDateValue = prompt("Enter updated due date:", currentDueDate);
+
+        if (dueDateValue !== null) {
+          const currentDate = new Date();
+          const dueDateTime = new Date(dueDateValue + 'T00:00:00');
+          const daysRemaining = Math.ceil((dueDateTime - currentDate) / (1000 * 60 * 60 * 24));
+
+          // Update the task text
+          if (daysRemaining > 0) {
+            const updatedText = `${updatedTask} Due: ${dueDateValue} (${daysRemaining} days remaining)`;
+            taskText.textContent = updatedText;
+            taskText.style.color="blue";
+          } 
+          else {
+            if(daysRemaining === 0){
+
+              const updatedText = `${updatedTask}`;
+              taskText.textContent = updatedText;
+              taskText.style.color="blue";
+            }
+            else{
+              if(daysRemaining<0){
+                const updatedText = `${updatedTask} Due:${dueDateValue} (Due date Reached)`;
+                taskText.textContent = updatedText;
+                taskText.style.color="red";
+      
+              }
+      
+            }
+          }
+
+          // Update all tasks with the same content
+          const allTasks = document.querySelectorAll('#myUL li:not(.completed):not(.dragging)');
+          allTasks.forEach(task => {
+            const taskSpan = task.querySelector('span');
+            const taskDetails = taskSpan.textContent.split(' ');
+            const taskContent = taskDetails[0].trim();
+            if (taskContent === currentTask.trim()) {
+              if (daysRemaining >= 0) {
+               textContent = `${updatedText} (${daysRemaining} days remaining)`;
+                taskContent.style.color = 'blue';
+              } else {
+                  if(daysRemaining<0){
+                    textContent = `${updatedText} (Due date reached)`;
+                    taskContent.style.color = 'red';
+                  }
+                }
+            }
+          });
+          FCompletionMessage(taskText, daysRemaining);
+        }
+      
+        else{
+          const updatedText = `${updatedTask}`;
+          taskText.textContent = updatedText;
+          daysRemaining===null;
+          taskText.style.color="blue";
+          FCompletionMessage(taskText, daysRemaining);
+        }
+      }
+    }
+    function completeTask() {
+      const selectedTasks = document.querySelectorAll('#myUL li.dragging');
+      
+      if (selectedTasks.length > 0) {
+        selectedTasks.forEach(task => {
+          const dueDate = task.dataset.dueDate;
+          const currentDate = new Date();
+          const dueDateTime = dueDate ? new Date(dueDate + 'T00:00:00') : null;
+          const daysRemaining = dueDateTime ? Math.ceil((dueDateTime - currentDate) / (1000 * 60 * 60 * 24)) : null;
+
+          // Strike through the task name
+          task.classList.remove('dragging', 'notReached', 'reached');
+          task.classList.add('completed');
+
+          // Display a general completion message
+          showMessage('Yay! Task Completed. 🎉', 'lightgreen');
+        });
+      } else {
+        showMessage('No tasks selected.', 'yellow');
+      }
+    }
+    function showMessage(message, color) {
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = message;
+      messageContainer.style.backgroundColor = color;
+      messageContainer.style.display = 'block';
+      
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+      }, 3000);
+    }
+    function FCompletionMessage(li,daysRemaining) {
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = "";
+
+      if (daysRemaining !== null) {
+        // Display message based on days remaining
+        if (daysRemaining === 0) {
+          showMessage('Task edited. 🎉', 'lightgreen');
+        } else {
+            if (daysRemaining > 0) {
+              showMessage(`Task edited. ${daysRemaining} days remaining. 🎉`, 'lightgreen');
+            }
+            else {
+              showMessage(`Task edited....DUE DATE has reached😞`, 'red');
+            }
+          }
+      } 
+      else {
+        // Display message if due date is not given
+        showMessage('Task edited. 🎉', 'lightgreen');
+      }
+    }
+    function showMessage(message, color) {
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.textContent = message;
+      messageContainer.style.backgroundColor = color;
+      messageContainer.style.display = 'block';
+      
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+      }, 3000);
+    }
+  
+
+    
+
+    
+
+
+   
+    
+  </script>
+  
+
+</body>
+
+</html>
